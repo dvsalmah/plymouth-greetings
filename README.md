@@ -5,82 +5,83 @@ A dynamic Plymouth boot splash theme featuring a welcoming "Hello" animation dur
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Linux](https://img.shields.io/badge/OS-Linux-orange)
 
-
 ## Preview
 
-**Booting ("Hello")**
-<img src="assets/hello/hello.png" alt="Boot Preview" width="420">
-
-**Shutdown ("Goodbye")**
-<img src="assets/goodbye/goodbye.png" alt="Shutdown Preview" width="420">
-
-
-## Features
-
-- **Auto Mode Detection:** Automatically detects and plays the appropriate animation based on the event (booting or shutdown).
-- **Smooth Animation:** Seamless frame transitions with support for ping-pong looping effects.
-- **Responsive Scaling:** Intelligently scales the animation to fit the screen resolution using `BOX_SCALE`.
-- **Easy Installation:** Automated installation script that handles `initramfs` rebuilding (supports both dracut & update-initramfs).
-
+|                          Boot ("Hello")                           |                           Shutdown ("Goodbye")                            |
+| :---------------------------------------------------------------: | :-----------------------------------------------------------------------: |
+| <img src="assets/hello/hello.png" alt="Boot Preview" width="380"> | <img src="assets/goodbye/goodbye.png" alt="Shutdown Preview" width="380"> |
 
 ## Prerequisites
 
-Ensure the following dependencies are installed on your system before proceeding:
-- `plymouth` (Required)
-- `dracut` or `initramfs-tools` (For rebuilding initramfs)
-- `sudo` privileges
-
+Make sure you have these installed:
+- `plymouth`
+- An initramfs tool (`mkinitcpio`, `dracut`, or `initramfs-tools`)
 
 ## Installation
 
-Installation is straightforward. Simply clone this repository and run the installation script.
+Just clone the repo and run the install script:
 
 ```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/dvsalmah/plymouth-greetings.git
-
-# 2. Navigate to the directory
 cd plymouth-greetings
 
-# 3. Run the installation script (requires sudo)
+# Run the installer
 chmod +x install.sh
 ./install.sh
 ```
 
-The script will automatically copy the theme to `/usr/share/plymouth/themes/`, set it as the default theme, and rebuild your `initramfs`.
+The script will copy the files to `/usr/share/plymouth/themes/plymouth-greetings`, set it as your default theme, and rebuild your `initramfs` automatically.
 
+## Configuration & Tweaks
 
-## Configuration / Customization
-
-You can easily adjust the animation speed and hold duration to your liking. Open the `/usr/share/plymouth/themes/plymouth-greetings/theme.script` file and modify the following variables:
+You can tweak the animation size and speed inside [theme.script](theme.script):
 
 ```javascript
-// Frame transition speed (Higher is faster)
-HELLO_STEP = 0.10;
-GOODBYE_STEP = 0.06;
+// Total frames
+HELLO_FRAMES = 300;
+GOODBYE_FRAMES = 300;
 
-// How many frames the animation pauses on the last frame before reversing
-HOLD_LIMIT = 12;
-
-// Screen scaling (0.30 means the animation takes up 30% of the screen height/width)
+// Screen scale (0.30 = 30% of screen size)
 BOX_SCALE = 0.30;
-```
-*Note: After making any changes to the `.script` file, you **must** run `sudo dracut -f` (Fedora/RHEL) or `sudo update-initramfs -u` (Debian/Ubuntu) to apply the changes.*
 
+// Animation speed (1.0 = 1 frame per refresh at 50 FPS)
+HELLO_STEP = 1.0;
+GOODBYE_STEP = 1.0;
+```
+
+### Test without rebooting
+
+You can quickly preview the animations locally with `dev.sh`:
+
+```bash
+# Preview boot animation (6 seconds)
+./dev.sh boot 6
+
+# Preview shutdown animation (6 seconds)
+./dev.sh shutdown 6
+```
+
+### Apply your changes
+
+After editing `theme.script`, simply run `./install.sh` again, or rebuild your initramfs manually:
+- **Fedora / RHEL / openSUSE:** `sudo dracut -f`
+- **Arch Linux:** `sudo mkinitcpio -P`
+- **Debian / Ubuntu:** `sudo update-initramfs -u`
 
 ## Uninstallation
 
-If you wish to remove this theme and revert to your default one (e.g., `bgrt`), run the following commands:
+To remove the theme and go back to your default one (e.g. `bgrt`):
 
 ```bash
-# Revert to the default theme (replace 'bgrt' with your OS default)
+# Set back to default theme
 sudo plymouth-set-default-theme -R bgrt
 
-# Remove the greetings theme folder
+# Remove theme folder
 sudo rm -rf /usr/share/plymouth/themes/plymouth-greetings
 ```
 
+## License
 
-## Credits & License
-
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for more details.
+[MIT License](https://github.com/dvsalmah/plymouth-greetings/blob/main/LICENSE).
+Feel free to use, modify, and share!

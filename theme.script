@@ -1,113 +1,64 @@
-window.set_background_color (0.11, 0.11, 0.18);
-
-HELLO_FRAMES = 25;
-GOODBYE_FRAMES = 20;
+HELLO_FRAMES = 300;
+GOODBYE_FRAMES = 300;
 BOX_SCALE = 0.30;
 BOX_WIDTH = Window.GetWidth() * BOX_SCALE;
 BOX_HEIGHT = Window.GetHeight() * BOX_SCALE;
 
-HELLO_STEP = 0.10;
-GOODBYE_STEP = 0.06;
-HOLD_LIMIT = 12;
+HELLO_STEP = 1.0;
+GOODBYE_STEP = 1.0;
 
 anim_frames = [];
-sprite = null;
+sprite = Sprite();
 frame_index = 1;
-forward = 1; 
-hold_frames = 0;
-frame_count = HELLO_FRAMES;
-reverse_order = false;
+last_frame = -1;
+target_w = 0;
 
 if (Plymouth.GetMode() == "boot") {
     image_prefix = "hello-";
-    anim_step = HELLO_STEP;
     frame_count = HELLO_FRAMES;
-    reverse_order = false;
-    frame_index = 1;
+    anim_step = HELLO_STEP;
 } else {
     image_prefix = "goodbye-";
-    anim_step = GOODBYE_STEP;
     frame_count = GOODBYE_FRAMES;
-    reverse_order = true;
-    frame_index = frame_count;
-    forward = 0; 
+    anim_step = GOODBYE_STEP;
 }
 
-fun load_frames(prefix, count, reversed) {
-    for (i = 1; i <= count; i++) {
-        source_index = i;
-        if (reversed) {
-            source_index = count - i + 1;
-        }
+for (i = 1; i <= frame_count; i++) {
+    img = Image(image_prefix + i + ".png");
+    if (img == null) continue;
 
-        original_img = Image(prefix + source_index + ".png");
-        if (original_img == null) {
-            anim_frames[i] = null;
-            continue;
-        }
-
-        image_ratio = original_img.GetWidth() / original_img.GetHeight();
+    if (target_w == 0) {
+        img_ratio = img.GetWidth() / img.GetHeight();
         box_ratio = BOX_WIDTH / BOX_HEIGHT;
 
-        if (box_ratio > image_ratio) {
-            scaled_height = BOX_HEIGHT;
-            scaled_width = scaled_height * image_ratio;
+        if (box_ratio > img_ratio) {
+            target_h = BOX_HEIGHT;
+            target_w = target_h * img_ratio;
         } else {
-            scaled_width = BOX_WIDTH;
-            scaled_height = scaled_width / image_ratio;
+            target_w = BOX_WIDTH;
+            target_h = target_w / img_ratio;
         }
-
-        anim_frames[i] = original_img.Scale(scaled_width, scaled_height);
+        sprite.SetPosition((Window.GetWidth() - target_w) / 2,
+                           (Window.GetHeight() - target_h) / 2, 0);
     }
+    anim_frames[i] = img.Scale(target_w, target_h);
 }
 
-    load_frames(image_prefix, frame_count, reverse_order);
+if (anim_frames[1] != null) {
+    sprite.SetImage(anim_frames[1]);
+    last_frame = 1;
+}
 
 fun refresh_callback () {
+    frame_index += anim_step;
+    if (frame_index > frame_count) {
+        frame_index = frame_index - frame_count;
+    }
+
     frame = Math.Int(frame_index);
-    if (frame < 1) {
-        frame = 1;
-    }
-    if (frame > frame_count) {
-        frame = frame_count;
-    }
-
-    current_img = anim_frames[frame];
-    if (current_img == null) {
-        current_img = anim_frames[1];
-        if (current_img == null) {
-            return;
-        }
-    }
-
-    if (sprite == null) {
-        sprite = Sprite();
-    }
-
-    sprite.SetImage(current_img);
-    sprite.SetPosition(Window.GetWidth() / 2 - current_img.GetWidth() / 2,
-                       Window.GetHeight() / 2 - current_img.GetHeight() / 2,
-                       0);
-
-    if (hold_frames > 0) {
-        hold_frames -= 1;
-        return;
-    }
-
-    if (forward) {
-        frame_index += anim_step;
-        if (frame_index >= frame_count) {
-            frame_index = frame_count;
-            hold_frames = HOLD_LIMIT;
-            forward = 0;
-        }
-    } else {
-        frame_index -= anim_step;
-        if (frame_index <= 1) {
-            frame_index = 1;
-            hold_frames = HOLD_LIMIT;
-            forward = 1;
-        }
+    if (frame != last_frame && anim_frames[frame] != null) {
+        sprite.SetImage(anim_frames[frame]);
+        last_frame = frame;
     }
 }
 
